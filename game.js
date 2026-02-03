@@ -51,7 +51,7 @@ class Target  {
         }
     }
 
-    target_hit() {
+    dead() {
         return this.size <= 0;
     }
     
@@ -82,7 +82,16 @@ class Target  {
         ctx.fill();
     }
 }
+function elapsedTime() {
+    return Math.floor((Date.now() - startTime) / 1000);
+}
 //--Screen--
+function clearScreen(color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0,0,width, height);
+}
+
+
 function drawLevelSelect() {
     clearScreen("#0f172a");
 
@@ -142,69 +151,117 @@ function drawGameOver() {
 
 
 //--Logic--
-function randomInteger(min, max) {
-    return Math.floor(Math.random() * (max-min+1)) + min;
+function spawnTarget() {
+    const x = Math.random() * (width-40)+20;
+    const y = Math.random() * (height-60)+60;
+    targets.push(new Target(x, y, levelData))
 }
 
-function elapsedTime() {
-    return Math.floor((Date.now() - startTime) / 1000);
+function updateGame() {
+    const now = Date.now()
+    if (now - lastSpawn >= levelData.timer) {
+        spawnTarget();
+        lastSpawn = now;
+    }
+
+    for (let i = targets.length-1; i>=0; i--) {
+        targets[i].update_target();
+        if (targets[i].dead()) {
+            targets.splice(i, 1);
+            miss++;
+        }
+    }
+
+    if (miss >= levelData.hp) {
+        gameWon = false;
+        gameState = state.game_over;
+    }
+    if (score>=score_threshold) {
+        gameWon = true;
+        gameState = state.game_over;
+    }
 }
 
-function resetGame(level) {
-    currentlvl = level;
-    levelData = levels[level];
+function resetGame(chosen_level) {
+    currentlvl = chosen_level;
+    levelData = levels[currentlvl];
     targets = [];
     score = 0;
     clicks = 0
     miss = 0
-    gameWon = false;
-
     startTime = Date.now();
-    clearInterval(spawnTimer);
-    spawnTimer = setInterval(spawnTarget, levelData.timer);
+    lastSpawn = Date.now();
     gameState = state.playing;
 }
 
-function spawnTarget() {
-    const x = randomInteger(target_padding, width-target_padding);
-    const y = randomInteger(scorebar_height+target_padding, height-target_padding);
-    
-    targets.push(new Target(x,y,levelData));
-}
-
-function updateGame() {
-    targets.forEach(t => t.update());
-    targets = targets.filter(t => {
-        if (t.target_hit()) {
-            miss++;
-            return false;
-        }
-        return true;
-    });
-
-    if (score>=score_threshold) {
-        endGame(true);
-    }
-    if (miss >= levelData.hp) {
-        endGame(false);
-    }
-}
-
-function endGame(won) {
-    clearInterval(spawnTimer);
-    gameWon = won;
-    gameState = state.game_over;
-}
-
 function handleClick(mx, my) {
-    if (gameState != state.playing) return;
     clicks++;
-    for (let i = targets.length-1, i>= 0; i--) {
-        if (targets[i].collide(mx, my)) {
-            targets.splice(i, 1);
+    for (let i = targets.length-1; i>=0;i--) {
+        if (targets[i].collide(mx,my)) {
+            targets.splice(i,1);
             score++;
             return;
         }
     }
 }
+
+// Game loop
+
+canvas.addEventListener("click", e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    if (gameState == state.level_select) {
+        for (let i = 1; i<=4;i++) {
+            const x = width/2 - 50;
+            const y = height/2 - 100 + (i - 1) * 70;
+        if (mx >= x && mx <= x + 100 && my >= y && my <= y + 50) {
+            resetGame(i);
+            return;
+        }
+        }
+    }
+
+    if (gameState == state.playing) {
+        handleClick(mx,my);
+    }
+    if (gameState == state.game_over) {
+        gameState = state.level_select;
+    }
+});
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+        if (gameState != state.playing) {
+            window.close();
+        }
+    }
+});
+
+// Main loop
+function gameLoop() {
+    requestAnimationFrame(gameLoop);
+    if (gameState === state.level_select) {
+        drawLevelSelect();
+        return;
+    }
+    if (gameState === state.playing) {
+        clearScreen();
+        updateGame();
+        targets.forEach(t => t.draw());
+        drawScorecard();
+        return;
+    }
+
+    if (gameState === state.game_over) {
+        drawGameOver();
+    }
+}
+
+gameLoop();
+
+
+
+
 
