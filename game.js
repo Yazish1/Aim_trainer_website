@@ -1,16 +1,25 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const width = 800;
-const height = 600;
+let height, width;
+function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+}
+
+resizeCanvas();
+window.addEventListener("resize",resizeCanvas)
+
 const scorebar_height = 40;
 const target_padding = 20;
-const score_threshold = 30;
+const score_threshold = 10;
 
 const levels = {
     1: { hp: 50, timer: 700, maxSize: 32, growthRate: 0.2 },
     2: { hp: 40, timer: 650, maxSize: 30, growthRate: 0.3 },
     3: { hp: 30, timer: 550, maxSize: 28, growthRate: 0.4 },
-    4: { hp: 20, timer: 400, maxSize: 24, growthRate: 0.5 }
+    4: { hp: 20, timer: 500, maxSize: 26, growthRate: 0.5 }
 }
 
 const state = {
@@ -30,7 +39,7 @@ let miss = 0
 let startTime = null;
 let spawnTimer = null;
 let gameWon = false;
-
+let endTime = null;
 class Target  {
     constructor(x, y, level) {
         this.x = x;
@@ -65,10 +74,11 @@ class Target  {
         ctx.beginPath();
         ctx.fillStyle = "red";
         ctx.arc(this.x, this.y, this.size, 0, Math.PI*2)
+        ctx.fill();
 
         ctx.beginPath();
         ctx.fillStyle = "white";
-        ctx.arc(this.x, this.y, this.size * 0.4, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.size * 0.8, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.beginPath();
@@ -78,12 +88,13 @@ class Target  {
 
         ctx.beginPath();
         ctx.fillStyle = "white";
-        ctx.arc(this.x, this.y, this.size * 0.8, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.size * 0.4, 0, Math.PI * 2);
         ctx.fill();
     }
 }
 function elapsedTime() {
-    return Math.floor((Date.now() - startTime) / 1000);
+    const end = (gameState === state.game_over && endTime) ? endTime : Date.now()
+    return Math.floor((end - startTime) / 1000);
 }
 //--Screen--
 function clearScreen(color) {
@@ -96,20 +107,22 @@ function drawLevelSelect() {
     clearScreen("#0f172a");
 
     ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
     ctx.fillStyle = "#e5e7eb";
     ctx.font = "48px Arial";
     ctx.fillText("Select Level", width / 2, 120);
 
-    ctx.font = "30px Arial";
+    ctx.font = "20px Arial";
     for (let i = 1; i <= 4; i++) {
-    const x = width / 2 - 50;
-    const y = height / 2 - 100 + (i - 1) * 70;
+        const x = width / 2 - 50;
+        const y = height / 2 - 100 + (i - 1) * 70;
 
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(x, y, 100, 50);
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(x, y, 100, 50);
 
-    ctx.fillStyle = "#cbd5f5";
-    ctx.fillText(`LEVEL ${i}`, width / 2, y + 35);
+        ctx.fillStyle = "#cbd5f5";
+        ctx.fillText(`LEVEL ${i}`, width / 2, y + 25);
     }
 
     ctx.font = "16px Arial";
@@ -152,8 +165,9 @@ function drawGameOver() {
 
 //--Logic--
 function spawnTarget() {
-    const x = Math.random() * (width-40)+20;
-    const y = Math.random() * (height-60)+60;
+    const margin = levelData.maxSize + target_padding;
+    const x = Math.random() * (width-margin*2)+margin;
+    const y = Math.random() * (height-margin*2-scorebar_height)+margin+scorebar_height;
     targets.push(new Target(x, y, levelData))
 }
 
@@ -174,10 +188,12 @@ function updateGame() {
 
     if (miss >= levelData.hp) {
         gameWon = false;
+        endTime = Date.now();
         gameState = state.game_over;
     }
     if (score>=score_threshold) {
         gameWon = true;
+        endTime = Date.now();
         gameState = state.game_over;
     }
 }
@@ -190,6 +206,7 @@ function resetGame(chosen_level) {
     clicks = 0
     miss = 0
     startTime = Date.now();
+    endTime = null;
     lastSpawn = Date.now();
     gameState = state.playing;
 }
@@ -233,8 +250,10 @@ canvas.addEventListener("click", e => {
 
 document.addEventListener("keydown", e => {
     if (e.key === "Escape") {
-        if (gameState != state.playing) {
-            window.close();
+        if (gameState === state.playing) {
+            gameState = state.level_select;
+        } else {
+            window.close()
         }
     }
 });
