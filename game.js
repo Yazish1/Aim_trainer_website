@@ -96,6 +96,7 @@ function elapsedTime() {
     const end = (gameState === state.game_over && endTime) ? endTime : Date.now()
     return Math.floor((end - startTime) / 1000);
 }
+
 //--Screen--
 function clearScreen(color) {
     ctx.fillStyle = color;
@@ -113,6 +114,7 @@ function drawLevelSelect() {
     ctx.font = "48px Arial";
     ctx.fillText("Select Level", width / 2, 120);
 
+    // Level button drawing
     ctx.font = "20px Arial";
     for (let i = 1; i <= 4; i++) {
         const x = width / 2 - 50;
@@ -168,7 +170,6 @@ function drawGameOver() {
 }
 
 
-//--Logic--
 function spawnTarget() {
     const margin = levelData.maxSize + target_padding;
     const x = Math.random() * (width-margin*2)+margin;
@@ -227,8 +228,7 @@ function handleClick(mx, my) {
     }
 }
 
-// Game loop
-
+// Event listeners
 canvas.addEventListener("click", e => {
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
@@ -253,6 +253,7 @@ canvas.addEventListener("click", e => {
     }
 });
 
+// Keyboard controls
 document.addEventListener("keydown", e => {
     if (e.key === "Escape") {
         if (gameState === state.playing) {
@@ -270,7 +271,7 @@ document.addEventListener("keydown", e => {
     }
 });
 
-// Main loop
+// Main game loop
 function gameLoop() {
     requestAnimationFrame(gameLoop);
     if (gameState === state.level_select) {
