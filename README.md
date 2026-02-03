@@ -1,5 +1,7 @@
 # 🎯 Aim trainer (Website Edition)
 
+[![Vercel Deployment](https://img.shields.io/badge/View_Live_Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://aim-trainer-three-delta.vercel.app)
+
 I’ve ported my original **Pygame aim trainer** to the web using HTML, CSS, and JavaScript. By moving to a browser-based format, I’ve eliminated the need for local installations and dependencies. This version features a streamlined UI, smoother performance, and native fullscreen support for a more responsive experience.
 
 ---
