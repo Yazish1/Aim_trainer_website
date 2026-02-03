@@ -13,7 +13,7 @@ window.addEventListener("resize",resizeCanvas)
 
 const scorebar_height = 40;
 const target_padding = 20;
-const score_threshold = 10;
+const score_threshold = 30;
 
 const levels = {
     1: { hp: 50, timer: 700, maxSize: 32, growthRate: 0.2 },
@@ -254,6 +254,13 @@ document.addEventListener("keydown", e => {
             gameState = state.level_select;
         } else {
             window.close()
+        }
+    }
+});
+document.addEventListener("keydown", e => {
+    if (e.key === "f") {
+        if (!document.fullscreenElement) {
+            canvas.requestFullscreen();
         }
     }
 });
