@@ -136,10 +136,15 @@ function drawScorecard() {
 
     ctx.fillStyle = "#b7c9d4";
     ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
-    ctx.fillText(`Time: ${elapsedTime()}s`, 200, 25);
-    ctx.fillText(`Score: ${score}`, 400, 25);
-    ctx.fillText(`HP: ${levelData.hp - miss}`, 600, 25);
+    const spaceX = width/3;
+    const centerY = scorebar_height/2
+
+    ctx.fillText(`Time: ${elapsedTime()}s`, spaceX*0.5, centerY);
+    ctx.fillText(`Score: ${score}`, spaceX*1.5, centerY);
+    ctx.fillText(`HP: ${levelData.hp - miss}`, spaceX*2.5, centerY);
 }
 
 function drawGameOver() {
