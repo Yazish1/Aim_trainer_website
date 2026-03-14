@@ -129,7 +129,6 @@ function drawLevelSelect() {
 
     ctx.font = "16px Arial";
     ctx.fillStyle = "#94a3b8";
-    ctx.fillText("Press ESC to exit", width / 2, height - 30);
 }
 
 function drawScorecard() {
@@ -166,7 +165,6 @@ function drawGameOver() {
     ctx.fillText(`Time: ${elapsedTime()}s`, width / 2, 330);
     ctx.fillStyle = "#94a3b8";
     ctx.fillText("Click to return to level select", width / 2, 380);
-    ctx.fillText("ESC to exit", width / 2, 410);
 }
 
 
